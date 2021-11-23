@@ -1,15 +1,9 @@
-import { makeSchema, queryType } from "nexus";
+import { makeSchema } from "nexus";
 import { join } from "path";
-
-const Query = queryType({
-  definition(t) {
-    t.string("hello", { resolve: () => "hello world!" });
-    t.string("ok", { resolve: () => "ok bokujo!" });
-  },
-});
+import * as types from "./types";
 
 export const schema = makeSchema({
-  types: [Query],
+  types,
   outputs: {
     typegen: join(
       process.cwd(),
