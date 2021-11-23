@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { gql, useQuery } from "@apollo/client";
 import { AwesomeLink } from "../components/AwesomeLink";
+import { NexusGenFieldTypes } from "../generated/nexus-typegen";
 
 const AllLinksQuery = gql`
   query allLinksQuery($first: Int, $after: String) {
@@ -35,8 +36,7 @@ export default function Home() {
   const { endCursor, hasNextPage } = data.links.pageInfo;
 
   const handleMore = () => {
-    // TODO: typing correctly
-    fetchMore<{ links: { edges: any[] } }, { after: number }>({
+    fetchMore<NexusGenFieldTypes["Query"], { after: number }>({
       variables: { after: endCursor },
       updateQuery: (prevResult, { fetchMoreResult }) => {
         fetchMoreResult.links.edges = [
@@ -58,15 +58,7 @@ export default function Home() {
       <div className="container mx-auto max-w-5xl my-20">
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {data.links.edges.map(({ node }) => (
-            <AwesomeLink
-              key={node.id}
-              url={node.url}
-              id={node.id}
-              category={node.category}
-              title={node.title}
-              description={node.description}
-              imageUrl={node.imageUrl}
-            />
+            <AwesomeLink key={node.id} link={node} />
           ))}
         </ul>
         {hasNextPage ? (

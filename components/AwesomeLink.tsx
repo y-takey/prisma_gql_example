@@ -1,12 +1,15 @@
-// TODO: define Props type with generated type by nexus
-export const AwesomeLink = ({
-  imageUrl,
-  url,
-  title,
-  category,
-  description,
-  id,
-}) => {
+import React from "react";
+import { NexusGenFieldTypes } from "../generated/nexus-typegen";
+
+interface Props {
+  link: NexusGenFieldTypes["Link"];
+}
+
+export const AwesomeLink: React.FC<Props> = (props) => {
+  const {
+    link: { imageUrl, url, title, category, description, id },
+  } = props;
+
   return (
     <li key={id} className="shadow  max-w-md  rounded">
       <img className="shadow-sm" src={imageUrl} />
