@@ -19,7 +19,7 @@ type Link {
 
 type PageInfo {
   endCursor: String
-  hasNextpage: Boolean
+  hasNextPage: Boolean
 }
 
 type Query {

@@ -33,7 +33,7 @@ export const PageInfo = objectType({
   name: "PageInfo",
   definition(t) {
     t.string("endCursor");
-    t.boolean("hasNextpage");
+    t.boolean("hasNextPage");
   },
 });
 
