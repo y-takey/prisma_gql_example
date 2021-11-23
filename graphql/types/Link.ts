@@ -1,4 +1,4 @@
-import { objectType, extendType } from "nexus";
+import { objectType, extendType, intArg, stringArg } from "nexus";
 import { User } from "./User";
 
 export const Link = objectType({
@@ -21,13 +21,83 @@ export const Link = objectType({
   },
 });
 
+export const Edge = objectType({
+  name: "Edge",
+  definition(t) {
+    t.string("cursor");
+    t.field("node", { type: Link });
+  },
+});
+
+export const PageInfo = objectType({
+  name: "PageInfo",
+  definition(t) {
+    t.string("endCursor");
+    t.boolean("hasNextpage");
+  },
+});
+
+export const Response = objectType({
+  name: "Response",
+  definition(t) {
+    t.field("pageInfo", { type: PageInfo });
+    t.list.field("edges", { type: Edge });
+  },
+});
+
 export const LinksQuery = extendType({
   type: "Query",
   definition(t) {
-    t.nonNull.list.field("links", {
-      type: Link,
-      resolve(_parent, _args, ctx) {
-        return ctx.prisma.link.findMany();
+    t.field("links", {
+      type: Response,
+      args: { first: intArg(), after: stringArg() },
+      async resolve(_, args, ctx) {
+        const { first, after } = args;
+        let queryResults = null;
+
+        if (after) {
+          queryResults = await ctx.prisma.link.findMany({
+            take: first,
+            skip: 1,
+            cursor: { id: after },
+          });
+        } else {
+          queryResults = await ctx.prisma.link.findMany({
+            take: first,
+          });
+        }
+
+        if (queryResults.length > 0) {
+          const lastLinkInResults = queryResults[queryResults.length - 1];
+          const myCursor = lastLinkInResults.id;
+
+          const secondQueryResults = await ctx.prisma.link.findMany({
+            take: first,
+            cursor: { id: myCursor },
+            orderBy: { id: "asc" },
+          });
+
+          const result = {
+            pageInfo: {
+              endCursor: myCursor,
+              hasNextPage: secondQueryResults.length >= first,
+            },
+            edges: queryResults.map((link) => ({
+              cursor: link.id,
+              node: link,
+            })),
+          };
+
+          return result;
+        }
+
+        return {
+          pageInfo: {
+            endCursor: null,
+            hasNextPage: false,
+          },
+          edges: [],
+        };
       },
     });
   },
